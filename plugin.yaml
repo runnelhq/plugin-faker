@@ -1,0 +1,9 @@
+kind: Plugin
+apiVersion: runnel/v1
+name: faker
+version: 0.1.0
+description: Generates test data and pseudonymizes real data
+namespace: faker
+executable:
+  windows: bin/faker.exe
+  linux: bin/faker
