@@ -1,7 +1,7 @@
 # plugin-faker – Testdaten für Runnel
 
-Runnel-Plugin, das Testdaten erzeugt: Personen, Adressen, Kontakte, Zahlen, Datumswerte und eigene Muster, auf Deutsch
-oder Englisch. Gebaut mit dem [Rust-SDK](https://github.com/runnelhq/sdk-rust) und
+Runnel-Plugin, das Testdaten erzeugt und echte Daten pseudonymisiert: Personen, Adressen, Kontakte, Zahlen,
+Datumswerte und eigene Muster, auf Deutsch oder Englisch. Gebaut mit dem [Rust-SDK](https://github.com/runnelhq/sdk-rust) und
 [fake-rs](https://github.com/cksac/fake-rs) (Crate `fake`, MIT oder Apache-2.0).
 
 Das Plugin gehört nicht in den Kern von Runnel, weil es in produktiven Umgebungen nicht gebraucht wird.
@@ -9,7 +9,7 @@ Das Plugin gehört nicht in den Kern von Runnel, weil es in produktiven Umgebung
 | | |
 |---|---|
 | Namensraum | `faker` |
-| Bausteine | Transform `faker.rows` (Eingabe) |
+| Bausteine | Transforms `faker.rows` (Eingabe) und `faker.fill` |
 | Runnel | ab S50b (Transforms mit `transform.init`) |
 | Lizenz | MIT |
 
@@ -66,6 +66,34 @@ Der erste Datensatz daraus (`seed: 42`, erzeugt am 2026-11-25; `birthDate` häng
 
 Der Wert eines Feldes hängt nur von `seed`, der Nummer des Datensatzes und dem Namen des Feldes ab. Ein neues Feld
 ändert die anderen also nicht.
+
+## `faker.fill`
+
+Setzt oder ersetzt Felder eingehender Datensätze: Ein Feld, das es schon gibt, wird ersetzt (mit dem Typ der Art),
+ein neues wird angehängt. Die anderen Felder bleiben, wie sie sind. Optionen wie bei `faker.rows`, ohne `count`.
+
+```yaml
+  - id: pseudo
+    type: faker.fill
+    with:
+      consistent: true
+      seed: ${PSEUDONYM_SEED}
+      fields:
+        - { name: firstName, kind: firstName }
+        - { name: lastName, kind: lastName }
+        - { name: email, kind: email, from: "firstName, lastName" }
+        - { name: customerNo, kind: pattern, pattern: "KD-#####" }
+```
+
+- **`consistent: true`:** Derselbe Eingabewert ergibt denselben Ersatz – berechnet aus Wert, Name des Feldes und
+  `seed`. So passen Schlüssel über Tabellen und Läufe hinweg: `customerNo` „4711“ wird in der Kunden- und in der
+  Auftragstabelle zu derselben Nummer, wenn beide Felder gleich heißen. `null` bleibt `null`. Felder, die es in der
+  Eingabe nicht gibt, bekommen je Datensatz neue Werte.
+- **`seed` ist der Schlüssel:** Wer `seed` kennt, kann Ersatzwerte durch Ausprobieren von Eingaben zurückführen. Den
+  Wert deshalb nicht in die Pipeline schreiben, sondern aus einer Variablen nehmen. Ohne `seed` nimmt `consistent` den
+  Wert 0; die Prüfung warnt dann. Pseudonymisieren ersetzt nur die genannten Felder; es anonymisiert nicht.
+- Ohne `consistent` bekommt jeder Datensatz neue Werte (wie `faker.rows`).
+- `faker.fill` erlaubt `copies`.
 
 ### Arten (`kind`) und Typen
 
