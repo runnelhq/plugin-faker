@@ -68,6 +68,72 @@ links:
         "{out}"
     );
 
+    // faker.fill pseudonymizes: the same name in two pipelines gets the same replacement.
+    p.write_file(
+        "pipelines/pseudo.pipeline.yaml",
+        r#"kind: Pipeline
+apiVersion: runnel/v1
+name: pseudo
+transforms:
+  - id: rows
+    type: core.generate-rows
+    with:
+      rows: "3"
+      rowNumberField: n
+      fields:
+        - { name: name, value: Ada Lovelace }
+  - id: fill
+    type: faker.fill
+    with:
+      consistent: true
+      seed: 99
+      fields:
+        - { name: name, kind: fullName }
+        - { name: mail, kind: email }
+  - id: result
+    type: core.to-result
+links:
+  - { from: rows, to: fill }
+  - { from: fill, to: result }
+"#,
+    );
+    p.write_file(
+        "workflows/pseudo.workflow.yaml",
+        r#"kind: Workflow
+apiVersion: runnel/v1
+name: pseudo
+outputs:
+  - name: NAMES
+    value: "{{ join(map(results.pseudo.output.rows, .name), '|') }}"
+actions:
+  - id: start
+    type: core.start
+  - id: pseudo
+    type: core.run-pipeline
+    with:
+      pipeline: pipelines/pseudo.pipeline.yaml
+links:
+  - { from: start, to: pseudo }
+"#,
+    );
+    let (out, code) = p.validate();
+    assert_eq!(code, 0, "{out}");
+    let (out, code) = p.run("workflows/pseudo.workflow.yaml", &[]);
+    assert_eq!(code, 0, "{out}");
+    let line = out
+        .lines()
+        .find(|l| l.contains("output NAMES = "))
+        .unwrap_or_else(|| panic!("{out}"));
+    let names: Vec<&str> = line
+        .split("output NAMES = \"")
+        .nth(1)
+        .unwrap()
+        .trim_end_matches('"')
+        .split('|')
+        .collect();
+    assert_eq!(names.len(), 3, "{line}");
+    assert!(names.iter().all(|n| *n == names[0] && *n != "Ada Lovelace"), "{line}");
+
     // init: mistakes of the configuration are errors of the check, at their field.
     let path = p.dir.join("pipelines").join("people.pipeline.yaml");
     let yaml = std::fs::read_to_string(&path).unwrap();
