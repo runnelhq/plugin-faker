@@ -1,0 +1,29 @@
+[package]
+name = "runnel-plugin-faker"
+version = "0.1.0"
+description = "Runnel plugin: test data and pseudonyms, with fake-rs"
+edition = "2024"
+rust-version = "1.87"
+license = "MIT"
+repository = "https://github.com/runnelhq/plugin-faker"
+publish = false
+
+[[bin]]
+name = "faker"
+path = "src/main.rs"
+
+[lib]
+name = "faker"
+path = "src/lib.rs"
+
+[dependencies]
+# Until the SDK has a release: the SDK next to this repository (CI checks it out there).
+runnel-plugin = { path = "../sdk-rust" }
+fake = { version = "=5.1.0", default-features = false }
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.154"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
