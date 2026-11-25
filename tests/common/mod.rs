@@ -29,5 +29,12 @@ pub fn all_kinds() -> Vec<Json> {
         json!({"name": "uuid", "kind": "uuid"}),
         json!({"name": "pick", "kind": "pick", "values": ["A", "B", "C"], "weights": [0, 1, 3]}),
         json!({"name": "pattern", "kind": "pattern", "pattern": "KD-#####-??"}),
+        json!({"name": "company", "kind": "company"}),
+        json!({"name": "iban", "kind": "iban"}),
+        json!({"name": "ibanAt", "kind": "iban", "country": "AT"}),
+        json!({"name": "bic", "kind": "bic"}),
+        json!({"name": "vatId", "kind": "vatId"}),
+        json!({"name": "words", "kind": "lorem", "words": 3}),
+        json!({"name": "sentences", "kind": "lorem", "sentences": 2}),
     ]
 }

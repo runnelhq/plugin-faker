@@ -1,0 +1,140 @@
+name: Release
+
+# Builds the archives of the plugin and publishes them as a GitHub release
+# (docs/dev/PLUGINS.md of Runnel, "Namen und Veröffentlichung"):
+# runnel-plugin-faker_VERSION_OS_amd64.zip with generated THIRD_PARTY_NOTICES and SHA256SUMS.
+# Each system is built on its own runner (Windows with MSVC).
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. v0.1.0 or v0.1.0-rc.1 (the tag is created on the selected commit of main)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Version and notices
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Determine version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            version="$INPUT_VERSION"
+            if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+              echo "::error::Manual releases must be started from the main branch"
+              exit 1
+            fi
+          else
+            version="$GITHUB_REF_NAME"
+          fi
+          if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Invalid version '$version' (expected e.g. v0.1.0 or v0.1.0-rc.1)"
+            exit 1
+          fi
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]] && git ls-remote --exit-code --tags origin "refs/tags/$version" >/dev/null; then
+            echo "::error::Tag $version already exists"
+            exit 1
+          fi
+          # The version in plugin.yaml must match the tag (a test checks src/lib.rs against plugin.yaml).
+          yaml_version="$(sed -n 's/^version:[[:space:]]*//p' plugin.yaml)"
+          if [[ "v$yaml_version" != "$version" ]]; then
+            echo "::error::plugin.yaml has version '$yaml_version', the release is '$version'"
+            exit 1
+          fi
+          # A release builds with a released SDK, not with a folder next to the repository.
+          if grep -q 'path = "../sdk-rust"' Cargo.toml; then
+            echo "::error::Cargo.toml takes the SDK from ../sdk-rust; use a tag of runnelhq/sdk-rust for a release"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - run: rustup show
+      - name: License notices
+        run: mkdir -p dist && scripts/third-party-notices.sh > dist/THIRD_PARTY_NOTICES
+      - uses: actions/upload-artifact@v6
+        with:
+          name: notices
+          path: dist/THIRD_PARTY_NOTICES
+
+  build:
+    name: Build (${{ matrix.target }})
+    needs: check
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          name: notices
+          path: dist
+      - run: rustup show
+      - name: Test
+        run: cargo test --locked --all-targets
+      - name: Archive
+        run: scripts/dist.sh ${{ matrix.target }}
+      - uses: actions/upload-artifact@v6
+        with:
+          name: archive-${{ matrix.target }}
+          path: dist/*.zip
+
+  release:
+    name: Publish release
+    needs: [check, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the release and tag
+      id-token: write # sign attestations (Sigstore)
+      attestations: write # store attestations
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: archive-*
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        run: scripts/sums.sh
+      - name: Attest build provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/*.zip
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.check.outputs.version }}
+        run: |
+          flags=(--generate-notes --title "Runnel plugin faker $VERSION")
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            flags+=(--target "$GITHUB_SHA")
+          else
+            flags+=(--verify-tag)
+          fi
+          if [[ "$VERSION" == *-* ]]; then
+            flags+=(--prerelease)
+          fi
+          gh release create "$VERSION" dist/*.zip dist/SHA256SUMS "${flags[@]}"

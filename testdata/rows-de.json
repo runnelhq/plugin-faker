@@ -1,8 +1,10 @@
 [
   {
+    "bic": "KXYVDEYDXXX",
     "birthDate": "1998-08-11",
     "boolean": false,
     "city": "Wuppertal",
+    "company": "Schäfer und Partner",
     "country": "Luxemburg",
     "date": "2024-02-19",
     "datetime": "2024-01-01T16:19:01Z",
@@ -13,6 +15,8 @@
     "float": 14.4,
     "fullName": "Christa Schreiber",
     "houseNumber": "39c",
+    "iban": "DE37122926529802086256",
+    "ibanAt": "AT399070970817073665",
     "integer": -3,
     "lastName": "Schreiber",
     "pattern": "KD-24878-SB",
@@ -20,13 +24,18 @@
     "pick": "C",
     "postcode": "42353",
     "salutation": "Frau",
+    "sentences": "Ea sit itaque commodi modi totam consectetur est. Ipsa dolore cumque nobis ut fuga dicta sed.",
     "street": "Bergstraße",
-    "uuid": "f50d5725-b777-4209-b147-a45eb4f6e848"
+    "uuid": "f50d5725-b777-4209-b147-a45eb4f6e848",
+    "vatId": "DE499407962",
+    "words": "explicabo aut et"
   },
   {
+    "bic": "ONHYDELV",
     "birthDate": "1997-03-07",
     "boolean": false,
     "city": "Schwerin",
+    "company": "Peters Metallbau eG",
     "country": "Frankreich",
     "date": "2024-02-07",
     "datetime": "2024-01-01T21:30:49Z",
@@ -37,6 +46,8 @@
     "float": 18.9,
     "fullName": "Felix Köhler",
     "houseNumber": "101",
+    "iban": "DE84835604483696026903",
+    "ibanAt": "AT550311414702721225",
     "integer": -4,
     "lastName": "Köhler",
     "pattern": "KD-69014-HR",
@@ -44,13 +55,18 @@
     "pick": "C",
     "postcode": "19056",
     "salutation": "Herr",
+    "sentences": "Quibusdam dolores dolor voluptas. Quos error laboriosam sint vitae voluptas maxime labore est.",
     "street": "Feldweg",
-    "uuid": "b314582b-44d8-49b9-99fa-6c61680f32b6"
+    "uuid": "b314582b-44d8-49b9-99fa-6c61680f32b6",
+    "vatId": "DE746142064",
+    "words": "accusantium est nulla"
   },
   {
+    "bic": "GVFEDEK9XXX",
     "birthDate": "1998-12-25",
     "boolean": false,
     "city": "Hannover",
+    "company": "Meier Elektrotechnik OHG",
     "country": "Italien",
     "date": "2024-02-24",
     "datetime": "2024-01-01T05:42:15Z",
@@ -61,6 +77,8 @@
     "float": 10.4,
     "fullName": "Werner Lærke",
     "houseNumber": "41",
+    "iban": "DE92814711904964132821",
+    "ibanAt": "AT471645636131750711",
     "integer": -5,
     "lastName": "Lærke",
     "pattern": "KD-94571-PL",
@@ -68,13 +86,18 @@
     "pick": "B",
     "postcode": "30365",
     "salutation": "Herr",
+    "sentences": "Maxime repudiandae at sed architecto inventore qui ad cum. Voluptatum ea ut architecto inventore excepturi.",
     "street": "Schulstraße",
-    "uuid": "c119113d-ac0c-4e74-a1e3-548e8a939ebf"
+    "uuid": "c119113d-ac0c-4e74-a1e3-548e8a939ebf",
+    "vatId": "DE180179172",
+    "words": "placeat officiis fuga"
   },
   {
+    "bic": "VIFBDE8KXXX",
     "birthDate": "2002-07-11",
     "boolean": false,
     "city": "Heidelberg",
+    "company": "Musterfrau und Partner",
     "country": "Deutschland",
     "date": "2024-02-01",
     "datetime": "2024-01-01T06:35:37Z",
@@ -85,6 +108,8 @@
     "float": 11.4,
     "fullName": "Christian Berger",
     "houseNumber": "76a",
+    "iban": "DE93177032334240696357",
+    "ibanAt": "AT825381621417129172",
     "integer": 2,
     "lastName": "Berger",
     "pattern": "KD-01913-FW",
@@ -92,13 +117,18 @@
     "pick": "C",
     "postcode": "69117",
     "salutation": "Herr",
+    "sentences": "Omnis non iusto corporis aliquam quos omnis similique odio. Repellat corrupti quod corporis neque ut amet dolorem soluta.",
     "street": "Königallee",
-    "uuid": "b1ff3a1d-b4d7-428e-b506-332c4b6a5b85"
+    "uuid": "b1ff3a1d-b4d7-428e-b506-332c4b6a5b85",
+    "vatId": "DE652438401",
+    "words": "perspiciatis nulla quia"
   },
   {
+    "bic": "JOJRDESL",
     "birthDate": "1996-11-01",
     "boolean": false,
     "city": "Regensburg",
+    "company": "Keller eG",
     "country": "Deutschland",
     "date": "2024-02-24",
     "datetime": "2024-01-01T03:30:47Z",
@@ -109,6 +139,8 @@
     "float": 17.4,
     "fullName": "Petra Werner",
     "houseNumber": "54",
+    "iban": "DE25675070718581865281",
+    "ibanAt": "AT625891679847614929",
     "integer": 2,
     "lastName": "Werner",
     "pattern": "KD-25747-ES",
@@ -116,7 +148,10 @@
     "pick": "B",
     "postcode": "93054",
     "salutation": "Frau",
+    "sentences": "Quos qui perspiciatis necessitatibus adipisci odit officiis voluptatem veniam. Sit impedit beatae iste quasi porro sed dolorum cumque.",
     "street": "Lessingstraße",
-    "uuid": "1a631ce8-d44b-4274-9eb1-9f8d434a1466"
+    "uuid": "1a631ce8-d44b-4274-9eb1-9f8d434a1466",
+    "vatId": "DE176471160",
+    "words": "voluptas ea aperiam"
   }
 ]
