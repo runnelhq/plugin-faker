@@ -16,6 +16,8 @@ $(printf '=%.0s' $(seq 1 $((44 + ${#name}))))
 The plugin includes the following third-party software. Their license texts follow.
 HEADER
 
+# Plain text for the names (CI sets CARGO_TERM_COLOR=always, which colors cargo tree).
+export CARGO_TERM_COLOR=never
 metadata=$(cargo metadata --format-version 1 --locked)
 own=$(jq -r '.resolve.root' <<<"$metadata")
 # Union of the crates of all release targets (some are platform-specific).
