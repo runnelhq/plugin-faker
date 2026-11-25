@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    - cron: "23 5 * * 1" # weekly: new vulnerabilities and new versions of Runnel and the SDK
+    - cron: "23 5 * * 1" # weekly: new vulnerabilities and new versions of Runnel
 
 permissions:
   contents: read
@@ -17,23 +17,12 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
 
-# Until the Rust SDK has a release, Cargo.toml takes it from ../sdk-rust: every job checks
-# out the plugin to plugin-faker/ and the SDK (main) to sdk-rust/ next to it.
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: plugin-faker
     steps:
       - uses: actions/checkout@v7
-        with:
-          path: plugin-faker
-      - uses: actions/checkout@v7
-        with:
-          repository: runnelhq/sdk-rust
-          path: sdk-rust
       - name: Toolchain (rust-toolchain.toml) and Windows target
         run: rustup show && rustup target add x86_64-pc-windows-msvc
       - run: cargo fmt --check
@@ -49,17 +38,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: plugin-faker
     steps:
       - uses: actions/checkout@v7
-        with:
-          path: plugin-faker
-      - uses: actions/checkout@v7
-        with:
-          repository: runnelhq/sdk-rust
-          path: sdk-rust
       - run: rustup show
       - name: Test (the same records on Linux and Windows, testdata/rows-*.json)
         run: cargo test --all-targets
@@ -76,12 +56,6 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v7
-        with:
-          path: plugin-faker
-      - uses: actions/checkout@v7
-        with:
-          repository: runnelhq/sdk-rust
-          path: sdk-rust
       - uses: actions/checkout@v7
         with:
           repository: runnelhq/runnel
@@ -92,26 +66,28 @@ jobs:
           check-latest: true
       - name: Build Runnel (without editor)
         run: cd runnel && go build -o "bin/runnel$(go env GOEXE)" ./cmd/runnel
-      - run: cd plugin-faker && rustup show
+      - run: rustup show
       - name: Test the plugin in Runnel
         run: |
           bin="$PWD/runnel/bin/runnel$(go env GOEXE)"
           # On Windows, the tests need a Windows path, not the one of Git Bash.
           if command -v cygpath >/dev/null; then bin="$(cygpath -m "$bin")"; fi
-          cd plugin-faker && RUNNEL_BIN="$bin" cargo test --test with_runnel -- --nocapture
+          RUNNEL_BIN="$bin" cargo test --test with_runnel -- --nocapture
 
   deny:
     name: Licenses and vulnerabilities
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-        with:
-          path: plugin-faker
-      - uses: actions/checkout@v7
-        with:
-          repository: runnelhq/sdk-rust
-          path: sdk-rust
       - uses: EmbarkStudios/cargo-deny-action@v2
         with:
-          manifest-path: plugin-faker/Cargo.toml
           command: check
+
+  dist:
+    name: Release archive and license notices (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup show
+      - name: Archive with THIRD_PARTY_NOTICES and SHA256SUMS
+        run: scripts/dist.sh x86_64-unknown-linux-gnu && scripts/sums.sh

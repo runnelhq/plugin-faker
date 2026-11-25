@@ -1,9 +1,9 @@
-# Runnel-Plugin "faker". Ziele: make build | test | lint | fmt | bench | deny | runnel-test
+# Runnel-Plugin "faker". Ziele: make build | test | lint | fmt | bench | deny | dist | notices | runnel-test
 # Runnel für die Tests gegen den Host, z. B. RUNNEL_BIN=../runnel/bin/runnel
 RUNNEL_BIN     ?=
 WINDOWS_TARGET := x86_64-pc-windows-msvc
 
-.PHONY: build test lint fmt bench deny golden runnel-test clean
+.PHONY: build test lint fmt bench deny dist notices golden runnel-test clean
 
 ## build: Plugin für dieses System nach target/release/ bauen
 build:
@@ -30,6 +30,16 @@ bench:
 ## deny: Lizenzen, Schwachstellen und Quellen der Abhängigkeiten (cargo-deny)
 deny:
 	cargo deny check
+
+## dist: Release-Archiv für dieses System (Linux) mit Lizenzhinweisen und SHA256SUMS nach dist/
+dist:
+	rm -rf dist
+	scripts/dist.sh x86_64-unknown-linux-gnu
+	scripts/sums.sh
+
+## notices: Lizenzhinweise der eingebauten Abhängigkeiten ausgeben
+notices:
+	@scripts/third-party-notices.sh
 
 ## golden: erwartete Datensätze (testdata/rows-*.json) neu schreiben; danach den Diff prüfen
 golden:

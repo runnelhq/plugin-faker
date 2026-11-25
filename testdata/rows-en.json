@@ -1,8 +1,10 @@
 [
   {
+    "bic": "KXYVGBYDXXX",
     "birthDate": "1998-08-11",
     "boolean": false,
     "city": "Huelhaven",
+    "company": "Emard, Marks and Kovacek",
     "country": "Mexico",
     "date": "2024-02-19",
     "datetime": "2024-01-01T16:19:01Z",
@@ -13,6 +15,8 @@
     "float": 14.4,
     "fullName": "Donna Stamm",
     "houseNumber": "2586",
+    "iban": "GB81AGGY26529802086256",
+    "ibanAt": "AT399070970817073665",
     "integer": -3,
     "lastName": "Stamm",
     "pattern": "KD-24878-SB",
@@ -20,13 +24,18 @@
     "pick": "C",
     "postcode": "46115",
     "salutation": "Ms.",
+    "sentences": "Ea sit itaque commodi modi totam consectetur est. Ipsa dolore cumque nobis ut fuga dicta sed.",
     "street": "Considine Drive",
-    "uuid": "f50d5725-b777-4209-b147-a45eb4f6e848"
+    "uuid": "f50d5725-b777-4209-b147-a45eb4f6e848",
+    "vatId": "GB699407967",
+    "words": "explicabo aut et"
   },
   {
+    "bic": "ONHYGBLV",
     "birthDate": "1997-03-07",
     "boolean": false,
     "city": "Zemlakborough",
+    "company": "Langosh and Sons",
     "country": "Israel",
     "date": "2024-02-07",
     "datetime": "2024-01-01T21:30:49Z",
@@ -37,6 +46,8 @@
     "float": 18.9,
     "fullName": "Jonathan Kihn",
     "houseNumber": "8185",
+    "iban": "GB93UIOQ04483696026903",
+    "ibanAt": "AT550311414702721225",
     "integer": -4,
     "lastName": "Kihn",
     "pattern": "KD-69014-HR",
@@ -44,13 +55,18 @@
     "pick": "C",
     "postcode": "12721",
     "salutation": "Mr.",
+    "sentences": "Quibusdam dolores dolor voluptas. Quos error laboriosam sint vitae voluptas maxime labore est.",
     "street": "Davis Island",
-    "uuid": "b314582b-44d8-49b9-99fa-6c61680f32b6"
+    "uuid": "b314582b-44d8-49b9-99fa-6c61680f32b6",
+    "vatId": "GB946142031",
+    "words": "accusantium est nulla"
   },
   {
+    "bic": "GVFEGBK9XXX",
     "birthDate": "1998-12-25",
     "boolean": false,
     "city": "Gulgowskibury",
+    "company": "Hoeger and Sons",
     "country": "Sri Lanka",
     "date": "2024-02-24",
     "datetime": "2024-01-01T05:42:15Z",
@@ -61,6 +77,8 @@
     "float": 10.4,
     "fullName": "Daniel Carroll",
     "houseNumber": "6383",
+    "iban": "GB87UCMU11904964132821",
+    "ibanAt": "AT471645636131750711",
     "integer": -5,
     "lastName": "Carroll",
     "pattern": "KD-94571-PL",
@@ -68,13 +86,18 @@
     "pick": "B",
     "postcode": "81042",
     "salutation": "Mr.",
+    "sentences": "Maxime repudiandae at sed architecto inventore qui ad cum. Voluptatum ea ut architecto inventore excepturi.",
     "street": "Bauch Fields",
-    "uuid": "c119113d-ac0c-4e74-a1e3-548e8a939ebf"
+    "uuid": "c119113d-ac0c-4e74-a1e3-548e8a939ebf",
+    "vatId": "GB380179152",
+    "words": "placeat officiis fuga"
   },
   {
+    "bic": "VIFBGB8KXXX",
     "birthDate": "2002-07-11",
     "boolean": false,
     "city": "Weissnatville",
+    "company": "Anderson LLC",
     "country": "Djibouti",
     "date": "2024-02-01",
     "datetime": "2024-01-01T06:35:37Z",
@@ -85,6 +108,8 @@
     "float": 11.4,
     "fullName": "Charles Mueller",
     "houseNumber": "5046",
+    "iban": "GB14BTTB32334240696357",
+    "ibanAt": "AT825381621417129172",
     "integer": 2,
     "lastName": "Mueller",
     "pattern": "KD-01913-FW",
@@ -92,13 +117,18 @@
     "pick": "C",
     "postcode": "21975",
     "salutation": "Mr.",
+    "sentences": "Omnis non iusto corporis aliquam quos omnis similique odio. Repellat corrupti quod corporis neque ut amet dolorem soluta.",
     "street": "Waelchi Passage",
-    "uuid": "b1ff3a1d-b4d7-428e-b506-332c4b6a5b85"
+    "uuid": "b1ff3a1d-b4d7-428e-b506-332c4b6a5b85",
+    "vatId": "GB252438467",
+    "words": "perspiciatis nulla quia"
   },
   {
+    "bic": "JOJRGBSL",
     "birthDate": "1996-11-01",
     "boolean": false,
     "city": "West Schowalterstad",
+    "company": "Lueilwitz, Gottlieb and Macejkovic",
     "country": "Ecuador",
     "date": "2024-02-24",
     "datetime": "2024-01-01T03:30:47Z",
@@ -109,6 +139,8 @@
     "float": 17.4,
     "fullName": "Elizabeth Herman",
     "houseNumber": "3591",
+    "iban": "GB56PUNB70718581865281",
+    "ibanAt": "AT625891679847614929",
     "integer": 2,
     "lastName": "Herman",
     "pattern": "KD-25747-ES",
@@ -116,7 +148,10 @@
     "pick": "B",
     "postcode": "15475",
     "salutation": "Ms.",
+    "sentences": "Quos qui perspiciatis necessitatibus adipisci odit officiis voluptatem veniam. Sit impedit beatae iste quasi porro sed dolorum cumque.",
     "street": "Pfannerstill Cape",
-    "uuid": "1a631ce8-d44b-4274-9eb1-9f8d434a1466"
+    "uuid": "1a631ce8-d44b-4274-9eb1-9f8d434a1466",
+    "vatId": "GB076471156",
+    "words": "voluptas ea aperiam"
   }
 ]

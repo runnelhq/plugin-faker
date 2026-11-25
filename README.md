@@ -9,7 +9,7 @@ Das Plugin gehört nicht in den Kern von Runnel, weil es in produktiven Umgebung
 | | |
 |---|---|
 | Namensraum | `faker` |
-| Bausteine | Transforms `faker.rows` (Eingabe) und `faker.fill` |
+| Bausteine | Transforms `faker.rows` (Eingabe) und `faker.fill`, Action `faker.value` |
 | Runnel | ab S50b (Transforms mit `transform.init`) |
 | Lizenz | MIT |
 
@@ -95,6 +95,19 @@ ein neues wird angehängt. Die anderen Felder bleiben, wie sie sind. Optionen wi
 - Ohne `consistent` bekommt jeder Datensatz neue Werte (wie `faker.rows`).
 - `faker.fill` erlaubt `copies`.
 
+## `faker.value`
+
+Ein einzelner Wert, z. B. für Tests in Workflows; Optionen wie ein Feld von `faker.rows` (ohne `name`), dazu `locale`
+und `seed`. Das Ergebnis steht in `results.<id>.output`.
+
+```yaml
+  - id: iban
+    type: faker.value
+    with:
+      kind: iban
+      country: AT
+```
+
 ### Arten (`kind`) und Typen
 
 | Art | Typ | Optionen und Inhalt |
@@ -116,6 +129,16 @@ ein neues wird angehängt. Die anderen Felder bleiben, wie sie sind. Optionen wi
 | `uuid` | string | UUID Version 4 |
 | `pick` | string | `values`: Liste; optional `weights` (gleich viele, nicht negativ) |
 | `pattern` | string | `pattern`: `#` Ziffer, `?` Großbuchstabe, `*` Ziffer oder Großbuchstabe, `\` nächstes Zeichen unverändert, z. B. `KD-#####` |
+| `company` | string | `de`: „Schäfer & Weber KG“, „Busch Elektrotechnik GmbH“, „Schmitt und Partner“ (Nachnamen und Rechtsformen aus fake-rs, deutsche Muster); `en`: „Feil LLC“, „Hills, Kohler and Wolff“ |
+| `iban` | string | gültige Prüfziffer (ISO 13616); `country`: `DE` (Standard bei `de`), `AT`, `CH`, `LI`, `LU`, `NL`, `GB` (Standard bei `en`), `BE` |
+| `bic` | string | Format einer BIC (Bank, Land, Ort, manchmal Filiale); `country` wie bei `iban`, jedes Länderkürzel |
+| `vatId` | string | USt-IdNr. mit gültiger Prüfziffer: `DE` (ISO 7064), `AT` (`ATU…`), `GB` |
+| `lorem` | string | `words` (5) Wörter oder `sentences` Sätze Lorem ipsum (fake-rs) |
+
+**Für alle Arten:** `nullRate` – Anteil leerer Werte (`null`) von 0 bis 1, um Wege für fehlende Werte zu testen.
+
+IBANs, BICs und USt-IdNrn. sind formal gültig, gehören aber zu keinem echten Konto oder Unternehmen – außer durch
+Zufall. Für Tests, die nichts überweisen oder melden, reicht das; echte Systeme sollte man damit nicht füttern.
 
 ### Prüfung (`transform.init`)
 
@@ -129,7 +152,8 @@ Variablen sind (`${…}`), prüft `init` nicht; steht eine Variable in `kind`, i
 - `count` höchstens 10.000.000; darüber scheitert die Prüfung und der Lauf mit einer Meldung.
 - Erzeugt wird in Batches zu 500 Datensätzen mit den Krediten des Protokolls: Nichts wird ganz im Speicher gehalten,
   ein langsamer Schritt dahinter bremst das Plugin.
-- Durchsatz mit fünf Feldern (vier Kerne, ohne Runnel, `make bench`): etwa 700.000 Datensätze/s.
+- Durchsatz mit fünf Feldern (vier Kerne): ohne Runnel (`make bench`) etwa 700.000 Datensätze/s; in Runnel mit
+  `csv.output` 1 Mio. Datensätze in 4 s.
 
 ## Daten: fake-rs und eigene Listen
 
@@ -144,7 +168,7 @@ Geprüft mit `fake` 5.1.0, Locale `de_de` (Befund vor dem ersten PR):
 | Postleitzahl | teils US-Format („32215-4996“), ohne Bezug zum Ort | eigene: echte Städte mit ihrem Bereich |
 | Ort | erfunden („Hohen-Rolf Schmidburg“) | eigene Liste mit 42 Städten |
 | Telefon | US-Formate („1-580-167-6578 x3186“) | eigene deutsche Formate |
-| Firma | Rechtsformen deutsch, Muster englisch („Schmitt and Horn OHG“) | folgt mit `company` |
+| Firma | Rechtsformen deutsch, Muster englisch („Schmitt and Horn OHG“) | Nachnamen und Rechtsformen aus fake-rs, deutsche Muster und Branchen aus eigener Liste |
 | Land | nur „Deutschland“, „Germany“ | eigene Liste |
 
 Für `en` kommen Nachnamen, Straßenendungen, Orte und Länder aus fake-rs; Vornamen mit Geschlecht und Telefonnummern
@@ -154,21 +178,21 @@ Konfiguration auf jedem System dieselben Daten ergibt, auch wenn `rand` sich än
 
 ## Installieren
 
-Bis zum ersten Release: bauen und in den Ordner `plugins/faker/` des Projekts legen.
+1. Archiv für das System aus den [Releases](https://github.com/runnelhq/plugin-faker/releases) laden
+   (`runnel-plugin-faker_<version>_windows_amd64.zip` oder `…_linux_amd64.zip`) und mit `SHA256SUMS` prüfen.
+2. In den Ordner `plugins/` des Projekts entpacken; es entsteht `plugins/faker/` mit `plugin.yaml`, Programm,
+   `LICENSE`, `README.md` und `THIRD_PARTY_NOTICES`.
+3. Freigeben:
 
-```bash
-cargo build --release
-```
-```bash
-mkdir -p D:/flows/plugins/faker/bin && cp target/release/faker.exe D:/flows/plugins/faker/bin/ && cp plugin.yaml D:/flows/plugins/faker/
-```
 ```bash
 runnel plugins trust D:/flows
 ```
 
+Selbst bauen: `make dist` (Linux) bzw. `scripts/dist.sh x86_64-pc-windows-msvc` unter Windows.
+
 ## Entwickeln
 
-Bis zu einem Release des Rust-SDK liegt es neben diesem Repository (`../sdk-rust`, siehe `Cargo.toml`).
+Das Rust-SDK kommt als Git-Tag (`v0.1.0`, siehe `Cargo.toml`).
 
 | Zweck | Befehl |
 |---|---|
@@ -177,4 +201,5 @@ Bis zu einem Release des Rust-SDK liegt es neben diesem Repository (`../sdk-rust
 | Erwartete Datensätze neu schreiben, wenn sich die Erzeugung bewusst ändert | `make golden`, danach den Diff prüfen |
 | Lizenzen und Schwachstellen | `make deny` |
 | Benchmark | `make bench` |
+| Release-Archiv mit Lizenzhinweisen und `SHA256SUMS` | `make dist`; Release: Tag `v0.1.0` (Workflow `release.yml`, Windows auf eigenem Runner) |
 | Test gegen Runnel (Pipeline `faker.rows` → `core.to-result`) | `make runnel-test RUNNEL_BIN=../runnel/bin/runnel` |

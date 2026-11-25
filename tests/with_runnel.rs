@@ -134,6 +134,32 @@ links:
     assert_eq!(names.len(), 3, "{line}");
     assert!(names.iter().all(|n| *n == names[0] && *n != "Ada Lovelace"), "{line}");
 
+    // faker.value in a workflow
+    p.write_file(
+        "workflows/value.workflow.yaml",
+        r#"kind: Workflow
+apiVersion: runnel/v1
+name: value
+outputs:
+  - name: IBAN
+    value: "{{ results.iban.output }}"
+actions:
+  - id: start
+    type: core.start
+  - id: iban
+    type: faker.value
+    with:
+      kind: iban
+      country: DE
+      seed: "${SEED}"
+links:
+  - { from: start, to: iban }
+"#,
+    );
+    let (out, code) = p.run("workflows/value.workflow.yaml", &["SEED=5"]);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains(r#"output IBAN = "DE"#), "{out}");
+
     // init: mistakes of the configuration are errors of the check, at their field.
     let path = p.dir.join("pipelines").join("people.pipeline.yaml");
     let yaml = std::fs::read_to_string(&path).unwrap();

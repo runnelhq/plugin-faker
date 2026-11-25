@@ -252,3 +252,23 @@ pub const COUNTRIES: &[&str] = &[
 ];
 
 pub const EMAIL_DOMAINS: &[&str] = &["example.de", "example.com", "example.org", "example.net"];
+
+/// Trades for company names ("Weber Elektrotechnik GmbH").
+pub const TRADES: &[&str] = &[
+    "Bau",
+    "Elektrotechnik",
+    "Haustechnik",
+    "Logistik",
+    "Immobilien",
+    "Metallbau",
+    "Software",
+    "Beratung",
+    "Handel",
+    "Druck",
+    "Automation",
+    "Gebäudereinigung",
+    "Maschinenbau",
+    "Transporte",
+    "Medien",
+    "Gartenbau",
+];

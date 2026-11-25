@@ -30,16 +30,24 @@ impl Locale {
 
 /// A field to generate: its name, kind and the options of the kind.
 #[derive(Debug, Clone, Default, Deserialize, Config)]
-#[serde(default, rename_all = "camelCase")]
+#[serde(default)]
 pub struct FieldSpec {
     /// Name of the field, e.g. customerId
     #[runnel(required, example = "id")]
     pub name: String,
+    #[serde(flatten)]
+    pub options: KindOptions,
+}
+
+/// The kind of a value and its options.
+#[derive(Debug, Clone, Default, Deserialize, Config)]
+#[serde(default, rename_all = "camelCase")]
+pub struct KindOptions {
     /// What to generate: a person, an address, a contact, a number, a date or a value of your own
     #[runnel(
         required,
         example = "integer",
-        values = "firstName|lastName|fullName|salutation|birthDate|email|phone|street|houseNumber|postcode|city|country|integer|decimal|float|boolean|date|datetime|uuid|pick|pattern"
+        values = "firstName|lastName|fullName|salutation|birthDate|email|phone|street|houseNumber|postcode|city|country|company|iban|bic|vatId|integer|decimal|float|boolean|date|datetime|uuid|pick|pattern|lorem"
     )]
     pub kind: String,
     /// Smallest number (integer, decimal, float)
@@ -64,6 +72,14 @@ pub struct FieldSpec {
     pub weights: Vec<f64>,
     /// Pattern (pattern): # a digit, ? a capital letter, * a digit or capital letter, \ the next character as it is, e.g. KD-#####
     pub pattern: String,
+    /// Country (iban, bic, vatId), e.g. DE, AT or GB; default from the locale
+    pub country: String,
+    /// Number of words (lorem), default 5
+    pub words: Option<u32>,
+    /// Number of sentences instead of words (lorem)
+    pub sentences: Option<u32>,
+    /// Share of empty values (null) from 0 to 1, e.g. 0.1 to test paths for missing values
+    pub null_rate: Option<f64>,
 }
 
 /// A checked field, ready to generate values.
@@ -72,6 +88,7 @@ pub struct Compiled {
     pub name: String,
     pub type_: &'static str,
     generator: Gen,
+    null_rate: f64,
 }
 
 #[derive(Debug, Clone)]
@@ -125,6 +142,20 @@ enum Gen {
         cumulative: Vec<f64>,
     },
     Pattern(String),
+    Company,
+    Iban {
+        country: &'static str,
+    },
+    Bic {
+        country: String,
+    },
+    VatId {
+        country: &'static str,
+    },
+    Lorem {
+        words: u32,
+        sentences: u32,
+    },
 }
 
 /// Whether a text still holds a variable or expression (`${…}`, `{{ … }}`), as in
@@ -137,7 +168,8 @@ pub fn is_variable(text: &str) -> bool {
 pub fn field_type(kind: &str) -> Option<&'static str> {
     Some(match kind {
         "firstName" | "lastName" | "fullName" | "salutation" | "email" | "phone" | "street" | "houseNumber"
-        | "postcode" | "city" | "country" | "uuid" | "pick" | "pattern" => types::STRING,
+        | "postcode" | "city" | "country" | "uuid" | "pick" | "pattern" | "company" | "iban" | "bic" | "vatId"
+        | "lorem" => types::STRING,
         "birthDate" | "date" => types::DATE,
         "datetime" => types::DATETIME,
         "integer" => types::INT,
@@ -170,6 +202,8 @@ pub fn compile(specs: &[FieldSpec], known: &[Field], path: &str) -> (Vec<Compile
             problem("name", format!("field {:?} is defined twice", s.name));
             continue;
         }
+        let name = &s.name;
+        let s = &s.options;
         if is_variable(&s.kind) {
             open = true;
             continue;
@@ -181,22 +215,31 @@ pub fn compile(specs: &[FieldSpec], known: &[Field], path: &str) -> (Vec<Compile
             );
             continue;
         };
+        let null_rate = match s.null_rate {
+            Some(r) if !(0.0..=1.0).contains(&r) => {
+                problem("nullRate", "nullRate must be between 0 and 1".into());
+                continue;
+            }
+            Some(r) => r,
+            None => 0.0,
+        };
         match gen_of(s, &names, &mut problem) {
             Some(generator) => out.push(Compiled {
-                name: s.name.clone(),
+                name: name.clone(),
                 type_,
                 generator,
+                null_rate,
             }),
             None => continue,
         }
-        if !names.contains(&s.name) {
-            names.push(s.name.clone());
+        if !names.contains(name) {
+            names.push(name.clone());
         }
     }
     (out, problems, open)
 }
 
-fn gen_of(s: &FieldSpec, names: &[String], problem: &mut impl FnMut(&str, String)) -> Option<Gen> {
+fn gen_of(s: &KindOptions, names: &[String], problem: &mut impl FnMut(&str, String)) -> Option<Gen> {
     let mut s = s.clone();
     for text in [&mut s.from, &mut s.to] {
         if is_variable(text) {
@@ -399,6 +442,61 @@ fn gen_of(s: &FieldSpec, names: &[String], problem: &mut impl FnMut(&str, String
             }
             Gen::Pattern(s.pattern.clone())
         }
+        "company" => Gen::Company,
+        "iban" | "vatId" | "bic" => {
+            let country = s.country.trim().to_uppercase();
+            let supported: &[&'static str] = match s.kind.as_str() {
+                "iban" => crate::bank::IBAN_COUNTRIES,
+                "vatId" => crate::bank::VAT_COUNTRIES,
+                _ => &[],
+            };
+            let pick = |c: &str| supported.iter().copied().find(|s| *s == c);
+            match s.kind.as_str() {
+                "bic"
+                    if country.is_empty()
+                        || (country.len() == 2 && country.bytes().all(|b| b.is_ascii_uppercase())) =>
+                {
+                    Gen::Bic { country }
+                }
+                "bic" => {
+                    problem("country", format!("{:?} is not a country code (e.g. DE)", s.country));
+                    return None;
+                }
+                _ if country.is_empty() => {
+                    if s.kind == "iban" {
+                        Gen::Iban { country: "" }
+                    } else {
+                        Gen::VatId { country: "" }
+                    }
+                }
+                kind => match pick(&country) {
+                    Some(c) if kind == "iban" => Gen::Iban { country: c },
+                    Some(c) => Gen::VatId { country: c },
+                    None => {
+                        problem(
+                            "country",
+                            format!(
+                                "{kind} supports the countries {}, not {:?}",
+                                supported.join(", "),
+                                s.country
+                            ),
+                        );
+                        return None;
+                    }
+                },
+            }
+        }
+        "lorem" => {
+            let (words, sentences) = (s.words.unwrap_or(5), s.sentences.unwrap_or(0));
+            if words == 0 || words > 1000 || sentences > 100 {
+                problem(
+                    if s.sentences.is_some() { "sentences" } else { "words" },
+                    "words must be from 1 to 1000, sentences at most 100".into(),
+                );
+                return None;
+            }
+            Gen::Lorem { words, sentences }
+        }
         _ => return None,
     })
 }
@@ -435,6 +533,9 @@ impl Compiled {
     /// Generates the value; `row` holds the values of the fields before (for email with
     /// `from`).
     pub fn generate(&self, loc: Locale, rng: &RecordRng, shared: &mut Shared, row: &[Value]) -> Value {
+        if self.null_rate > 0.0 && rng.field(&format!("{}#null", self.name)).chance(self.null_rate) {
+            return Value::Null;
+        }
         let mut r = rng.field(&self.name);
         let s = |x: String| Value::String(x);
         match &self.generator {
@@ -553,8 +654,91 @@ impl Compiled {
                 s(values[i].clone())
             }
             Gen::Pattern(p) => s(pattern(p, &mut r)),
+            Gen::Company => s(company(loc, &mut r)),
+            Gen::Iban { country } => {
+                let c = if country.is_empty() {
+                    default_country(loc)
+                } else {
+                    country
+                };
+                s(crate::bank::iban(c, &mut r))
+            }
+            Gen::Bic { country } => {
+                let c = if country.is_empty() {
+                    default_country(loc)
+                } else {
+                    country.as_str()
+                };
+                s(crate::bank::bic(c, &mut r))
+            }
+            Gen::VatId { country } => {
+                let c = if country.is_empty() {
+                    default_country(loc)
+                } else {
+                    country
+                };
+                s(crate::bank::vat_id(c, &mut r))
+            }
+            Gen::Lorem { words, sentences } => s(lorem(*words, *sentences, &mut r)),
         }
     }
+}
+
+fn default_country(loc: Locale) -> &'static str {
+    match loc {
+        Locale::De => "DE",
+        Locale::En => "GB",
+    }
+}
+
+/// A company: last names with a legal form of the locale (fake-rs), in German patterns for
+/// de ("Schmitt & Horn KG", not "Schmitt and Horn OHG").
+fn company(loc: Locale, r: &mut Rng) -> String {
+    match loc {
+        Locale::De => {
+            let mut last = || r.pick(DE_DE::NAME_LAST_NAME).to_string();
+            let (a, b) = (last(), last());
+            let legal = *r.pick(DE_DE::COMPANY_SUFFIX);
+            match r.below(4) {
+                0 => format!("{a} & {b} {legal}"),
+                1 => format!("{a} {} {legal}", r.pick(de::TRADES)),
+                2 => format!("{a} und Partner"),
+                _ => format!("{a} {legal}"),
+            }
+        }
+        Locale::En => {
+            let mut last = || r.pick(EN::NAME_LAST_NAME).to_string();
+            let (a, b, c) = (last(), last(), last());
+            let suffix = *r.pick(EN::COMPANY_SUFFIX);
+            match r.below(3) {
+                0 => format!("{a} {suffix}"),
+                1 => format!("{a}-{b} {suffix}"),
+                _ => format!("{a}, {b} and {c}"),
+            }
+        }
+    }
+}
+
+/// Words or sentences of lorem ipsum (fake-rs).
+fn lorem(words: u32, sentences: u32, r: &mut Rng) -> String {
+    let mut sentence = |n: u32| -> String {
+        let w: Vec<&str> = (0..n).map(|_| *r.pick(EN::LOREM_WORD)).collect();
+        w.join(" ")
+    };
+    if sentences == 0 {
+        return sentence(words);
+    }
+    (0..sentences)
+        .map(|_| {
+            let n = 4 + (sentence(1).len() as u32 % 7);
+            let mut t = sentence(n);
+            if let Some(first) = t.get(..1) {
+                t = first.to_uppercase() + &t[1..];
+            }
+            t + "."
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 fn person<'a>(loc: Locale, rng: &RecordRng, shared: &'a mut Shared) -> &'a Person {

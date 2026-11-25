@@ -1,7 +1,12 @@
 # Änderungen
 
-## Unveröffentlicht
+## v0.1.0 (unveröffentlicht)
 
+- Arten `company`, `iban` (Land wählbar, gültige Prüfziffer), `bic`, `vatId` (DE, AT, GB mit Prüfziffer), `lorem`
+  (Wörter oder Sätze); `nullRate` für alle Arten.
+- Action `faker.value` für einen einzelnen Wert.
+- Rust-SDK `v0.1.0` per Git-Tag statt `../sdk-rust`.
+- Release-Archive für Windows und Linux mit `THIRD_PARTY_NOTICES` und `SHA256SUMS` (Workflow `release.yml`).
 - `faker.rows`: Datensätze mit Personen, Adressen, Kontakten, Zahlen, Datumswerten, `pick` und `pattern`, Locales
   `de` und `en`, reproduzierbar mit `seed`, Prüfung mit `transform.init`, höchstens 10.000.000 Datensätze.
 - `faker.fill`: setzt oder ersetzt Felder eingehender Datensätze; `consistent: true` ergibt für denselben Wert
