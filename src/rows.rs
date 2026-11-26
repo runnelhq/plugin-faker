@@ -1,8 +1,8 @@
 //! faker.rows: an input that generates records.
 
 use runnel_plugin::{
-    Config, Context, Error, Field, InitInput, InitResult, Problem, RecordSchema, Stream, TO_MAIN, Transform,
-    transform_category,
+    Config, Context, Error, Field, InitInput, InitResult, OutputField, Problem, RecordSchema, Reference, Stream,
+    TO_MAIN, Transform, transform_category,
 };
 use serde::Deserialize;
 
@@ -37,6 +37,17 @@ pub fn transform() -> Transform<RowsConfig> {
             "type: faker.rows\nwith:\n  count: 1000\n  locale: de\n  seed: 42\n  fields:\n    - { name: id, kind: integer, min: 1, max: 99999 }\n    - { name: firstName, kind: firstName }\n    - { name: lastName, kind: lastName }\n    - { name: email, kind: email, from: \"firstName, lastName\" }\n    - { name: city, kind: city }\n",
         )
         .init(init)
+        .reference(
+            Reference::new()
+                .output(OutputField::new("<fields[].name>", "any", "One field per entry of fields, with the type of its kind"))
+                .records("Generates count records and passes them on over the data links; faker.rows has no incoming links.")
+                .errors(
+                    "Fails when the configuration is invalid, e.g. an unknown kind or locale, min greater than max or count out of range; the check reports the same at the field. Fails when a kind is still a variable at the start of the run.",
+                )
+                .limit("count is at most 10,000,000.")
+                .limit("Records go out in batches of 500 with the credits of the protocol, so they are never all held in memory.")
+        .limit("scale has at most 9 digits, lorem at most 1,000 words or 100 sentences, and maxAge of birthDate is at most 150."),
+        )
 }
 
 /// The checks shared by init and run: problems with paths in with:.

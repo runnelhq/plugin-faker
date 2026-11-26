@@ -1,6 +1,6 @@
 [package]
 name = "runnel-plugin-faker"
-version = "0.1.0"
+version = "0.2.0"
 description = "Runnel plugin: test data and pseudonyms, with fake-rs"
 edition = "2024"
 rust-version = "1.87"
@@ -17,7 +17,7 @@ name = "faker"
 path = "src/lib.rs"
 
 [dependencies]
-runnel-plugin = { git = "https://github.com/runnelhq/sdk-rust", tag = "v0.1.0" }
+runnel-plugin = { path = "../sdk-rust" }
 fake = { version = "=5.1.0", default-features = false }
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = "=1.0.154"

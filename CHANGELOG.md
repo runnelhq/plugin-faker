@@ -1,6 +1,13 @@
 # Änderungen
 
-## v0.1.0 (unveröffentlicht)
+## v0.2.0 (unveröffentlicht)
+
+- Referenz für `faker.rows`, `faker.fill` und `faker.value` (ADR 0014 von Runnel, E15b): gesetzte Felder bzw.
+  Ergebnis, weitergegebene Datensätze, Fehler und Grenzen. Runnel zeigt sie in der Hilfe des Editors; ein Test prüft
+  sie mit `check_references` des SDK.
+- Rust-SDK `v0.2.0`.
+
+## v0.1.0 (2026-11-25)
 
 - Arten `company`, `iban` (Land wählbar, gültige Prüfziffer), `bic`, `vatId` (DE, AT, GB mit Prüfziffer), `lorem`
   (Wörter oder Sätze); `nullRate` für alle Arten.

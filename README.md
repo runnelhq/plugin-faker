@@ -155,6 +155,16 @@ Variablen sind (`${…}`), prüft `init` nicht; steht eine Variable in `kind`, i
 - Durchsatz mit fünf Feldern (vier Kerne): ohne Runnel (`make bench`) etwa 700.000 Datensätze/s; in Runnel mit
   `csv.output` 1 Mio. Datensätze in 4 s.
 
+### Hilfe im Editor
+
+Jeder Baustein beschreibt in `describe` seine Referenz (ADR 0014 von Runnel, E15b):
+- die Felder, die er setzt, bzw. das Ergebnis (`output`);
+- welche Datensätze er weitergibt;
+- wann er scheitert;
+- seine Grenzen.
+
+Runnel zeigt das in der Hilfe des Editors. Ein Test prüft die Texte mit `runnel_plugin::testing::check_references`.
+
 ## Daten: fake-rs und eigene Listen
 
 Geprüft mit `fake` 5.1.0, Locale `de_de` (Befund vor dem ersten PR):
@@ -192,7 +202,7 @@ Selbst bauen: `make dist` (Linux) bzw. `scripts/dist.sh x86_64-pc-windows-msvc` 
 
 ## Entwickeln
 
-Das Rust-SDK kommt als Git-Tag (`v0.1.0`, siehe `Cargo.toml`).
+Das Rust-SDK kommt als Git-Tag (`v0.2.0`, siehe `Cargo.toml`).
 
 | Zweck | Befehl |
 |---|---|
@@ -201,5 +211,5 @@ Das Rust-SDK kommt als Git-Tag (`v0.1.0`, siehe `Cargo.toml`).
 | Erwartete Datensätze neu schreiben, wenn sich die Erzeugung bewusst ändert | `make golden`, danach den Diff prüfen |
 | Lizenzen und Schwachstellen | `make deny` |
 | Benchmark | `make bench` |
-| Release-Archiv mit Lizenzhinweisen und `SHA256SUMS` | `make dist`; Release: Tag `v0.1.0` (Workflow `release.yml`, Windows auf eigenem Runner) |
+| Release-Archiv mit Lizenzhinweisen und `SHA256SUMS` | `make dist`; Release: Tag `v0.2.0` (Workflow `release.yml`, Windows auf eigenem Runner) |
 | Test gegen Runnel (Pipeline `faker.rows` → `core.to-result`) | `make runnel-test RUNNEL_BIN=../runnel/bin/runnel` |
