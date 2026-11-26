@@ -1,6 +1,6 @@
 //! faker.value: one value, e.g. for tests in workflows.
 
-use runnel_plugin::{Action, Call, Config, Error};
+use runnel_plugin::{Action, Call, Config, Error, OutputField, Reference};
 use serde::Deserialize;
 use serde_json::Value as Json;
 
@@ -22,6 +22,12 @@ pub struct ValueConfig {
 pub fn action() -> Action<ValueConfig> {
     Action::new("faker.value", "Fake value", "Returns one value of test data", run)
         .example("type: faker.value\nwith:\n  kind: iban\n  country: DE\n")
+        .reference(
+            Reference::new()
+                .output(OutputField::new("output", "any", "The value: a text, a number or true or false by its kind, null by nullRate"))
+                .errors("Fails when kind is unknown, an option does not fit the kind, e.g. min greater than max, or locale is not de or en.")
+        .limit("scale has at most 9 digits, lorem at most 1,000 words or 100 sentences, and maxAge of birthDate is at most 150."),
+        )
 }
 
 fn run(call: &Call, c: ValueConfig) -> Result<Json, Error> {

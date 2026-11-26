@@ -117,8 +117,8 @@ checksum = "63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69"
 
 [[package]]
 name = "runnel-plugin"
-version = "0.1.0"
-source = "git+https://github.com/runnelhq/sdk-rust?tag=v0.1.0#bd85385a8bf40e7e72573743336b276b4488c1ec"
+version = "0.2.0"
+source = "git+https://github.com/runnelhq/sdk-rust?tag=v0.2.0#ec6befe072c16ff7e848eb218440d91138e5e6c1"
 dependencies = [
  "runnel-plugin-derive",
  "serde",
@@ -127,8 +127,8 @@ dependencies = [
 
 [[package]]
 name = "runnel-plugin-derive"
-version = "0.1.0"
-source = "git+https://github.com/runnelhq/sdk-rust?tag=v0.1.0#bd85385a8bf40e7e72573743336b276b4488c1ec"
+version = "0.2.0"
+source = "git+https://github.com/runnelhq/sdk-rust?tag=v0.2.0#ec6befe072c16ff7e848eb218440d91138e5e6c1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -137,7 +137,7 @@ dependencies = [
 
 [[package]]
 name = "runnel-plugin-faker"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "fake",
  "runnel-plugin",

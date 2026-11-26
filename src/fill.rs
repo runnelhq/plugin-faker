@@ -1,7 +1,8 @@
 //! faker.fill: sets or replaces fields of incoming records, e.g. to pseudonymize real data.
 
 use runnel_plugin::{
-    Config, Context, Error, Field, InitInput, InitResult, Problem, RecordSchema, Row, Stream, TO_MAIN, Transform, Value,
+    Config, Context, Error, Field, InitInput, InitResult, OutputField, Problem, RecordSchema, Reference, Row, Stream,
+    TO_MAIN, Transform, Value,
 };
 use serde::Deserialize;
 
@@ -30,6 +31,15 @@ pub fn transform() -> Transform<FillConfig> {
         )
         .parallel()
         .init(init)
+        .reference(
+            Reference::new()
+                .output(OutputField::new("<fields[].name>", "any", "Each field of fields, set or replaced with the type of its kind"))
+                .records("Passes every incoming record on over the data links with the fields of fields set or replaced; other fields stay as they are.")
+                .errors(
+                    "Fails when the configuration is invalid, e.g. an unknown kind or min greater than max, or when from of email names no earlier field. With consistent and without seed, the check warns that seed 0 is used.",
+                )
+        .limit("scale has at most 9 digits, lorem at most 1,000 words or 100 sentences, and maxAge of birthDate is at most 150."),
+        )
 }
 
 struct Plan {

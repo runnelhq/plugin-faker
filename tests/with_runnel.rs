@@ -160,6 +160,26 @@ links:
     assert_eq!(code, 0, "{out}");
     assert!(out.contains(r#"output IBAN = "DE"#), "{out}");
 
+    // The references reach the catalog of the editor (GET /api/v1/catalog of runnel serve).
+    let catalog = catalog_of(&p);
+    for (list, typ) in [
+        ("transforms", "faker.rows"),
+        ("transforms", "faker.fill"),
+        ("actions", "faker.value"),
+    ] {
+        let d = catalog[list]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|d| d["type"] == typ)
+            .unwrap_or_else(|| panic!("{typ} not in the catalog"));
+        assert!(
+            d["errors"].is_string() && d["outputs"].is_array() && d["limits"].is_array(),
+            "{typ}: {d}"
+        );
+        assert_eq!(d["records"].is_string(), list == "transforms", "{typ}: {d}");
+    }
+
     // init: mistakes of the configuration are errors of the check, at their field.
     let path = p.dir.join("pipelines").join("people.pipeline.yaml");
     let yaml = std::fs::read_to_string(&path).unwrap();
@@ -171,4 +191,47 @@ links:
     assert_ne!(code, 0, "{out}");
     assert!(out.contains("min (500) is greater than max (0)"), "{out}");
     assert!(out.contains("count must be between 0 and 10000000"), "{out}");
+}
+
+/// Starts runnel serve for the project and returns its catalog.
+fn catalog_of(p: &Project) -> serde_json::Value {
+    use std::io::{Read, Write};
+    let port = std::net::TcpListener::bind("127.0.0.1:0")
+        .unwrap()
+        .local_addr()
+        .unwrap()
+        .port();
+    let mut server = p
+        .command(&[
+            "serve",
+            &p.dir.to_string_lossy(),
+            "--port",
+            &port.to_string(),
+            "--triggers",
+            "",
+        ])
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .unwrap();
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(20);
+    let body = loop {
+        let got = std::net::TcpStream::connect(("127.0.0.1", port))
+            .ok()
+            .and_then(|mut c| {
+                write!(c, "GET /api/v1/catalog HTTP/1.0\r\nHost: 127.0.0.1:{port}\r\n\r\n").ok()?;
+                let mut text = String::new();
+                c.read_to_string(&mut text).ok()?;
+                text.starts_with("HTTP/1.0 200")
+                    .then(|| text.split_once("\r\n\r\n").map(|(_, b)| b.to_string()))?
+            });
+        if let Some(b) = got {
+            break b;
+        }
+        assert!(std::time::Instant::now() < deadline, "runnel serve did not answer");
+        std::thread::sleep(std::time::Duration::from_millis(100));
+    };
+    let _ = server.kill();
+    let _ = server.wait();
+    serde_json::from_str(&body).unwrap()
 }

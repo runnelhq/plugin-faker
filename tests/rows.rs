@@ -352,6 +352,16 @@ fn describe() {
     );
 }
 
+/// Result, errors and limits of every type, by the rules of the contract tests of Runnel.
+#[test]
+fn references() {
+    runnel_plugin::testing::check_references(&faker::plugin()).unwrap();
+    let d = Client::start(&faker::plugin()).describe().unwrap();
+    let rows = &d["transforms"][0];
+    assert_eq!(rows["outputs"][0]["name"], "<fields[].name>");
+    assert!(rows["limits"][0].as_str().unwrap().contains("10,000,000"));
+}
+
 #[test]
 fn version_matches_plugin_yaml() {
     let yaml = include_str!("../plugin.yaml");
